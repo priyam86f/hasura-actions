@@ -1,6 +1,5 @@
 package com.example.demo.webhook;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +22,6 @@ public class WebhookController {
 
         // Log for debugging
         System.out.println("Transformed Names: " + firstNameUpper + " " + lastNameUpper);
-        // Log the user details after saving
-
-        
-
 
         // Create a new User entity and set its properties
         User user = new User();
@@ -37,15 +32,17 @@ public class WebhookController {
         // Save the user to the database
         userRepository.save(user);
 
-        // Return the transformed data to Hasura
-        return ResponseEntity.ok(new CreateUserResponse("SUCCESS", "User created successfully", user));
+        // Create the GraphQL-compatible response format
+        CreateUserResponse response = new CreateUserResponse("SUCCESS", "User created successfully", user);
+
+        // Return the response wrapped in 'data' for GraphQL format
+        return ResponseEntity.ok(new GraphQLResponse(new Data(response)));
     }
 
     @GetMapping("/home")
     public String getMethodName() {
         return "new String();";
     }
-  
 }
 
 // Request class to match Hasura action's input
@@ -80,7 +77,7 @@ class CreateUserRequest {
     }
 }
 
-// Response class to send back to Hasura
+// Response class to send back to Hasura in GraphQL format
 class CreateUserResponse {
     private String status;
     private String message;
@@ -116,5 +113,39 @@ class CreateUserResponse {
 
     public void setUser(User user) {
         this.user = user;
+    }
+}
+
+// Wrapper class for GraphQL response
+class GraphQLResponse {
+    private Data data;
+
+    public GraphQLResponse(Data data) {
+        this.data = data;
+    }
+
+    public Data getData() {
+        return data;
+    }
+
+    public void setData(Data data) {
+        this.data = data;
+    }
+}
+
+// Data class that contains the actual response of the action
+class Data {
+    private CreateUserResponse createUserWithUppercase;
+
+    public Data(CreateUserResponse createUserWithUppercase) {
+        this.createUserWithUppercase = createUserWithUppercase;
+    }
+
+    public CreateUserResponse getCreateUserWithUppercase() {
+        return createUserWithUppercase;
+    }
+
+    public void setCreateUserWithUppercase(CreateUserResponse createUserWithUppercase) {
+        this.createUserWithUppercase = createUserWithUppercase;
     }
 }
